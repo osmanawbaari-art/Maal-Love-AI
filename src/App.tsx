@@ -34,7 +34,6 @@ import {
 } from 'firebase/firestore';
 import { 
   signInWithPopup, 
-  signInAnonymously,
   GoogleAuthProvider,
   onAuthStateChanged,
   User as FirebaseUser
@@ -162,7 +161,7 @@ function Wheel({ rotation, onSpinEnd }: { rotation: number; onSpinEnd?: () => vo
               className="absolute top-0 left-0 w-full h-full origin-center"
               style={{
                 transform: `rotate(${rotate}deg)`,
-                clipPath: 'polygon(50% 50%, 50% 0%, 100% 0%, 100% 50%)',
+                clipPath: 'polygon(50% 50%, 50% 0%, 100% 0%, 100% 45%)',
                 backgroundColor: cat.color,
               }}
             >
@@ -170,14 +169,14 @@ function Wheel({ rotation, onSpinEnd }: { rotation: number; onSpinEnd?: () => vo
                 className="absolute top-12 left-1/2 -translate-x-1/2 text-white flex flex-col items-center gap-1"
                 style={{ 
                   transform: `rotate(${angle / 2}deg)`,
-                  width: '120px',
+                  width: '140px',
                   textAlign: 'center'
                 }}
               >
-                <div className="bg-black/20 p-2 rounded-full backdrop-blur-sm mb-1 ring-1 ring-white/30">
-                  {React.createElement(cat.icon, { size: 20, className: "drop-shadow-lg" })}
+                <div className="bg-black/20 p-2 rounded-full backdrop-blur-md mb-1 ring-1 ring-white/30 shadow-md">
+                  {React.createElement(cat.icon, { size: 18, className: "drop-shadow-lg" })}
                 </div>
-                <span className="text-[11px] font-black uppercase tracking-wider leading-tight [text-shadow:0_2px_4px_rgba(0,0,0,0.8)] bg-black/10 px-3 py-1 rounded-full border border-white/10">
+                <span className="text-[10px] font-black uppercase tracking-widest leading-none drop-shadow-xl [text-shadow:0_1px_3px_rgba(0,0,0,0.8)] bg-black/20 px-2 py-1 rounded-full whitespace-nowrap">
                   {cat.label}
                 </span>
               </div>
@@ -262,15 +261,6 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
-  const loginAsGuest = async () => {
-    try {
-      await signInAnonymously(auth);
-      setError(null);
-    } catch (e: any) {
-      setError(`Guest login failed: ${e.message}`);
-    }
-  };
-
   const loginWithGoogle = async () => {
     try {
       const provider = new GoogleAuthProvider();
@@ -281,7 +271,7 @@ export default function App() {
       if (e.code === 'auth/popup-blocked') {
         setError("Popup-ka waa la xiray. Fadlan ogolow popup-ka daaqadaada.");
       } else if (e.code === 'auth/unauthorized-domain') {
-        setError("Domain-kaan (maalloveai.vercel.app) looma ogola Google Login. Waxaad ku geli kartaa 'GUEST' hoos ka dooro.");
+        setError("Domain-kaan looma ogola Google Login. Fadlan hubi setup-kaaga.");
       } else {
         setError(`Galita way ku fashilantay: ${e.message || 'Cillad aan la garaneyn'}`);
       }
@@ -429,17 +419,13 @@ export default function App() {
               <Sparkles className="absolute -top-2 -right-2 text-amber-400" />
             </div>
             <div className="space-y-4">
-              <h1 className="text-5xl font-black italic tracking-tighter bg-gradient-to-br from-rose-600 to-orange-500 bg-clip-text text-transparent">Lamaanaha Wheel</h1>
+              <h1 className="text-5xl font-black italic tracking-tighter bg-gradient-to-br from-rose-600 to-orange-500 bg-clip-text text-transparent">Maal Love AI</h1>
               <p className="text-gray-500 font-medium text-lg italic px-10">Ku soo dhawaada ciyaarta is-barashada iyo qosolka u dhexeeysa lamaanaha! ❤️</p>
             </div>
             <div className="flex flex-col gap-4 w-full px-8">
-              <button onClick={loginWithGoogle} className="group bg-white text-gray-800 font-black py-5 px-8 rounded-[2rem] shadow-xl hover:shadow-2xl transition-all active:scale-95 flex items-center justify-center gap-4 border-b-4 border-gray-100">
-                <img src="https://www.google.com/favicon.ico" alt="" className="w-5 h-5" />
+              <button onClick={loginWithGoogle} className="group bg-white text-gray-800 font-black py-6 px-8 rounded-[2.5rem] shadow-xl hover:shadow-2xl transition-all active:scale-95 flex items-center justify-center gap-4 border-b-4 border-gray-100">
+                <img src="https://www.google.com/favicon.ico" alt="" className="w-6 h-6" />
                 KU GAL GOOGLE
-              </button>
-              
-              <button onClick={loginAsGuest} className="bg-rose-100/50 text-rose-600 font-black py-4 px-8 rounded-[2rem] hover:bg-rose-100 transition-all border-b-2 border-rose-200 text-sm">
-                KU GAL MARTI (GUEST)
               </button>
             </div>
             {error && <p className="text-rose-500 font-bold bg-white px-6 py-3 rounded-full shadow-sm">{error}</p>}
