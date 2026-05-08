@@ -48,6 +48,7 @@ interface Question {
   id: string;
   text: string;
   category: Category;
+  type?: 'boolean' | 'completion';
 }
 
 interface RoomData {
@@ -84,18 +85,18 @@ const CATEGORIES: { id: Category; label: string; color: string; icon: any }[] = 
 ];
 
 const INITIAL_QUESTIONS: Question[] = [
-  { id: 'd1', category: 'Deep', text: 'Maxaad ugu malaysaa inay tahay sirta xiriirka guuleysta?' },
-  { id: 'd2', category: 'Deep', text: 'Waa maxay cabsidaada ugu weyn ee dhinaca xiriirka?' },
-  { id: 'r1', category: 'Riddle', text: 'Waxa uu leeyahay af laakiin ma hadlo, waxa uu leeyahay sariir laakiin ma seexdo. Waa maxay? (Waa Wabi/Webi)' },
-  { id: 'r2', category: 'Riddle', text: 'Waa maxay waxa mar walba kuu imaanaya laakiin aan waligiis soo gaarin? (Waa Berri/Bari)' },
-  { id: 'f1', category: 'Flashback', text: 'Waa maxay xusuustaadii ugu horeysay ee nala kulmay?' },
-  { id: 'f2', category: 'Flashback', text: 'Ma xasuusataa hadalkii ugu horeeyay ee aan is weydaarsanay?' },
-  { id: 'dr1', category: 'Dare', text: 'Igu samee 3 compliment oo kala duwan 10 ilbiriqsi gudahood!' },
-  { id: 'dr2', category: 'Dare', text: 'Igu hor hees hal daqiiqo, ha joojin ilaa aan ku dhaha jooji!' },
-  { id: 'ft1', category: 'Future', text: 'Xagee jeceshahay inaan u safarno sanadka dambe?' },
-  { id: 'ft2', category: 'Future', text: 'Riyadaada ugu weyn ee aad rabto inaan wada gaarno waa maxay?' },
-  { id: 'g1', category: 'Gift', text: 'Waxaad xaq u leedahay in lagu dhunkado 5 jeer hadda! 😘' },
-  { id: 'g2', category: 'Gift', text: 'Qofka kale waa inuu kuu sameeyaa koob shaah ama qaxwo ah.' },
+  { id: 'd1', category: 'Deep', text: 'Maxaad ugu malaysaa inay tahay sirta xiriirka guuleysta?', type: 'completion' },
+  { id: 'd2', category: 'Deep', text: 'Waa maxay cabsidaada ugu weyn ee dhinaca xiriirka?', type: 'completion' },
+  { id: 'r1', category: 'Riddle', text: 'Waxa uu leeyahay af laakiin ma hadlo, waxa uu leeyahay sariir laakiin ma seexdo. Waa maxay? (Waa Wabi)', type: 'completion' },
+  { id: 'r2', category: 'Riddle', text: 'Waa maxay waxa mar walba kuu imaanaya laakiin aan waligiis soo gaarin? (Waa Berri)', type: 'completion' },
+  { id: 'f1', category: 'Flashback', text: 'Waa maxay xusuustaadii ugu horeysay ee nala kulmay?', type: 'completion' },
+  { id: 'f2', category: 'Flashback', text: 'Ma xasuusataa hadalkii ugu horeeyay ee aan is weydaarsanay?', type: 'completion' },
+  { id: 'dr1', category: 'Dare', text: 'Igu samee 3 compliment oo kala duwan 10 ilbiriqsi gudahood!', type: 'completion' },
+  { id: 'dr2', category: 'Dare', text: 'Igu hor hees hal daqiiqo, ha joojin ilaa aan ku dhaha jooji!', type: 'completion' },
+  { id: 'ft1', category: 'Future', text: 'Xagee jeceshahay inaan u safarno sanadka dambe?', type: 'completion' },
+  { id: 'ft2', category: 'Future', text: 'Riyadaada ugu weyn ee aad rabto inaan wada gaarno waa maxay?', type: 'completion' },
+  { id: 'g1', category: 'Gift', text: 'Waxaad xaq u leedahay in lagu dhunkado 5 jeer hadda! 😘', type: 'completion' },
+  { id: 'g2', category: 'Gift', text: 'Qofka kale waa inuu kuu sameeyaa koob shaah ama qaxwo ah.', type: 'completion' },
 ];
 
 // --- Helpers ---
@@ -139,16 +140,17 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
 
 function Wheel({ rotation, onSpinEnd }: { rotation: number; onSpinEnd?: () => void }) {
   return (
-    <div className="relative w-64 h-64 md:w-72 md:h-72 mx-auto">
+    <div className="relative w-72 h-72 md:w-80 md:h-80 mx-auto">
+      {/* Needle */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-4 z-20">
-        <div className="w-8 h-8 bg-gray-900" style={{ clipPath: 'polygon(50% 100%, 0% 0%, 100% 0%)' }} />
+        <div className="w-8 h-8 bg-gray-900 shadow-lg" style={{ clipPath: 'polygon(50% 100%, 0% 0%, 100% 0%)' }} />
       </div>
       
       <motion.div
         animate={{ rotate: rotation }}
         transition={{ type: 'spring', damping: 20, stiffness: 40, mass: 2 }}
         onAnimationComplete={onSpinEnd}
-        className="w-full h-full rounded-full border-8 border-white shadow-2xl relative overflow-hidden bg-white"
+        className="w-full h-full rounded-full border-8 border-white shadow-[0_20px_50px_rgba(0,0,0,0.15)] relative overflow-hidden bg-white"
       >
         {CATEGORIES.map((cat, i) => {
           const angle = 360 / CATEGORIES.length;
@@ -156,27 +158,37 @@ function Wheel({ rotation, onSpinEnd }: { rotation: number; onSpinEnd?: () => vo
           return (
             <div
               key={cat.id}
-              className="absolute top-0 left-0 w-full h-full"
+              className="absolute top-0 left-0 w-full h-full origin-center"
               style={{
                 transform: `rotate(${rotate}deg)`,
                 clipPath: 'polygon(50% 50%, 50% 0%, 100% 0%, 100% 50%)',
                 backgroundColor: cat.color,
-                transformOrigin: '50% 50%',
               }}
             >
               <div 
-                className="absolute top-4 left-1/2 -translate-x-1/2 text-white flex flex-col items-center gap-1"
-                style={{ transform: `rotate(${angle / 2}deg)` }}
+                className="absolute top-10 left-1/2 -translate-x-1/2 text-white flex flex-col items-center gap-2"
+                style={{ 
+                  transform: `rotate(${angle / 2}deg)`,
+                  width: '90px',
+                  textAlign: 'center'
+                }}
               >
-                {React.createElement(cat.icon, { size: 14 })}
-                <span className="text-[10px] font-bold uppercase tracking-tighter whitespace-nowrap">
-                  {cat.label.split(' ')[0]}
+                <div className="bg-white/20 p-2 rounded-full backdrop-blur-sm">
+                  {React.createElement(cat.icon, { size: 20, className: "drop-shadow-lg" })}
+                </div>
+                <span className="text-[12px] font-black uppercase tracking-widest leading-none drop-shadow-lg [text-shadow:0_2px_4px_rgba(0,0,0,0.5)]">
+                  {cat.label}
                 </span>
               </div>
             </div>
           );
         })}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-white rounded-full shadow-inner z-10" />
+        {/* Center Cap */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-14 h-14 bg-white rounded-full shadow-xl z-10 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-full border-4 border-rose-50 flex items-center justify-center">
+            <div className="w-2 h-2 bg-rose-500 rounded-full" />
+          </div>
+        </div>
       </motion.div>
     </div>
   );
@@ -254,8 +266,15 @@ export default function App() {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
       setError(null);
-    } catch (e) {
-      setError("Galita way ku fashilantay.");
+    } catch (e: any) {
+      console.error("Login Error:", e);
+      if (e.code === 'auth/popup-blocked') {
+        setError("Popup-ka waa la xiray. Fadlan ogolow popup-ka daaqadaada.");
+      } else if (e.code === 'auth/unauthorized-domain') {
+        setError("Domain-kaan looma ogola Google Login. Fadlan la xiriir admin-ka.");
+      } else {
+        setError(`Galita way ku fashilantay: ${e.message || 'Cillad aan la garaneyn'}`);
+      }
     }
   };
 
@@ -307,7 +326,7 @@ export default function App() {
   const saveSetup = async () => {
     if (!room) return;
     const customQuestions: Question[] = customList.map((text, i) => ({
-      id: `c${i}`, text, category: 'Deep'
+      id: `c${i}`, text, category: 'Deep', type: 'completion'
     }));
     try {
       await updateDoc(doc(db, 'rooms', room.id), {
@@ -342,6 +361,8 @@ export default function App() {
     }
   };
 
+  const [responseText, setResponseText] = useState('');
+
   const handleResponse = async (accepted: boolean) => {
     if (!room || !user) return;
     const isHost = user.uid === room.hostId;
@@ -349,6 +370,10 @@ export default function App() {
     
     // Only the target player can respond
     if ((targetIsHost && !isHost) || (!targetIsHost && isHost)) return;
+
+    if (accepted && (room.currentQuestion?.category === 'Riddle' || room.currentQuestion?.category === 'Deep') && !responseText.trim()) {
+      return alert("Fadlan qor jawaabtaada!");
+    }
 
     const newScores = { ...room.scores };
     if (accepted) {
@@ -368,6 +393,7 @@ export default function App() {
         nextSpinnerId,
         currentRound: isGameOver ? room.currentRound : room.currentRound + 1
       });
+      setResponseText(''); // Clear for next round
     } catch (e) { handleFirestoreError(e, OperationType.UPDATE, `rooms/${room.id}`); }
   };
 
@@ -541,38 +567,63 @@ export default function App() {
                         {CATEGORIES.find(c => c.id === room.currentQuestion?.category)?.label}
                       </span>
                       <div className="text-rose-500 font-black text-sm uppercase">
-                        {room.lastSpinnerId === room.hostId ? room.guestName : room.hostName} waa inuu sameeyaa:
+                        {room.lastSpinnerId === room.hostId ? room.guestName : room.hostName} waa inuu jawaabaa:
                       </div>
                       <h2 className="text-2xl md:text-3xl font-black text-gray-800 leading-tight">
                         {room.currentQuestion.text}
                       </h2>
                     </div>
 
+                    {(room.currentQuestion.category === 'Riddle' || room.currentQuestion.category === 'Deep') && (
+                      <div className="w-full mb-8">
+                        <textarea
+                          value={responseText}
+                          onChange={(e) => setResponseText(e.target.value)}
+                          placeholder="Ku qor jawaabtaada halkan..."
+                          className="w-full bg-gray-50 border-2 border-rose-50 rounded-2xl p-4 font-bold text-gray-700 outline-none focus:border-rose-200 resize-none"
+                          rows={3}
+                          disabled={(user?.uid === room.hostId && room.lastSpinnerId === room.hostId) || (user?.uid === room.guestId && room.lastSpinnerId === room.guestId)}
+                        />
+                      </div>
+                    )}
+
                     {room.currentQuestion.category === 'Dare' && room.timerEndTime && (
-                      <div className="mb-8 scale-125">
+                      <div className="mb-8 scale-110">
                         <Timer endTime={room.timerEndTime} />
                       </div>
                     )}
 
-                    <div className="grid grid-cols-2 gap-4 w-full">
-                      <button 
-                        onClick={() => handleResponse(true)} 
-                        disabled={(user?.uid === room.hostId && room.lastSpinnerId === room.hostId) || (user?.uid === room.guestId && room.lastSpinnerId === room.guestId)}
-                        className="bg-green-500 text-white py-5 rounded-[2rem] font-black text-lg shadow-lg active:scale-95 disabled:opacity-30 disabled:grayscale transition-all flex items-center justify-center gap-2"
-                      >
-                        <ThumbsUp /> HAA
-                      </button>
-                      <button 
-                        onClick={() => handleResponse(false)} 
-                        disabled={(user?.uid === room.hostId && room.lastSpinnerId === room.hostId) || (user?.uid === room.guestId && room.lastSpinnerId === room.guestId)}
-                        className="bg-rose-500 text-white py-5 rounded-[2rem] font-black text-lg shadow-lg active:scale-95 disabled:opacity-30 disabled:grayscale transition-all flex items-center justify-center gap-2"
-                      >
-                        <ThumbsDown /> MAYA
-                      </button>
+                    <div className="w-full">
+                      {(room.currentQuestion.type === 'completion' || !room.currentQuestion.type) ? (
+                        <button 
+                          onClick={() => handleResponse(true)} 
+                          disabled={(user?.uid === room.hostId && room.lastSpinnerId === room.hostId) || (user?.uid === room.guestId && room.lastSpinnerId === room.guestId)}
+                          className="w-full bg-rose-500 text-white py-6 rounded-[2.5rem] font-black text-xl shadow-xl active:scale-95 disabled:opacity-30 disabled:grayscale transition-all flex items-center justify-center gap-3"
+                        >
+                          <Check size={28} /> WAAN SAMEEYAY
+                        </button>
+                      ) : (
+                        <div className="grid grid-cols-2 gap-4 w-full">
+                          <button 
+                            onClick={() => handleResponse(true)} 
+                            disabled={(user?.uid === room.hostId && room.lastSpinnerId === room.hostId) || (user?.uid === room.guestId && room.lastSpinnerId === room.guestId)}
+                            className="bg-green-500 text-white py-5 rounded-[2rem] font-black text-lg shadow-lg active:scale-95 disabled:opacity-30 disabled:grayscale transition-all flex items-center justify-center gap-2"
+                          >
+                            <ThumbsUp /> HAA
+                          </button>
+                          <button 
+                            onClick={() => handleResponse(false)} 
+                            disabled={(user?.uid === room.hostId && room.lastSpinnerId === room.hostId) || (user?.uid === room.guestId && room.lastSpinnerId === room.guestId)}
+                            className="bg-rose-500 text-white py-5 rounded-[2rem] font-black text-lg shadow-lg active:scale-95 disabled:opacity-30 disabled:grayscale transition-all flex items-center justify-center gap-2"
+                          >
+                            <ThumbsDown /> MAYA
+                          </button>
+                        </div>
+                      )}
                     </div>
                     
                     {((user?.uid === room.hostId && room.lastSpinnerId === room.hostId) || (user?.uid === room.guestId && room.lastSpinnerId === room.guestId)) && (
-                      <p className="mt-6 text-gray-400 text-xs font-bold uppercase italic">Sug jawaabta qofka kale... ⏳</p>
+                      <p className="mt-6 text-gray-400 text-xs font-bold uppercase italic">Sug jawaabta gacaliyahaaga... ⏳</p>
                     )}
                   </motion.div>
                 )}
