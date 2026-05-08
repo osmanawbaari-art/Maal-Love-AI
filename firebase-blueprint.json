@@ -1,0 +1,50 @@
+{
+  "entities": {
+    "Room": {
+      "title": "Game Room",
+      "description": "A session for two players to play the wheel game together.",
+      "type": "object",
+      "properties": {
+        "status": { "type": "string", "enum": ["waiting", "setup", "active", "finished"] },
+        "hostId": { "type": "string" },
+        "hostName": { "type": "string" },
+        "guestId": { "type": "string" },
+        "guestName": { "type": "string" },
+        "wheelState": { "type": "string", "enum": ["idle", "spinning", "result"] },
+        "nextSpinnerId": { "type": "string" },
+        "lastSpinnerId": { "type": "string" },
+        "rotation": { "type": "number" },
+        "currentQuestion": {
+          "type": "object",
+          "properties": {
+            "text": { "type": "string" },
+            "category": { "type": "string" },
+            "id": { "type": "string" }
+          }
+        },
+        "timerEndTime": { "type": "number" },
+        "customQuestions": {
+          "type": "array",
+          "items": { "type": "object" }
+        },
+        "maxRounds": { "type": "number" },
+        "currentRound": { "type": "number" },
+        "scores": {
+          "type": "object",
+          "properties": {
+            "host": { "type": "number" },
+            "guest": { "type": "number" }
+          }
+        },
+        "lastAction": { "type": "string", "enum": ["accepted", "declined", null] }
+      },
+      "required": ["status", "hostId"]
+    }
+  },
+  "firestore": {
+    "rooms/{roomId}": {
+      "schema": "Room",
+      "description": "Live game room data"
+    }
+  }
+}

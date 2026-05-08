@@ -1,0 +1,63 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isPart() {
+      return request.auth.uid == existing().hostId || request.auth.uid == existing().guestId;
+    }
+
+    function isValidRoom(data) {
+      return data.status in ['waiting', 'setup', 'active', 'finished']
+        && data.hostId is string
+        && data.hostName is string;
+    }
+
+    match /rooms/{roomId} {
+      allow read: if isSignedIn();
+      
+      allow create: if isSignedIn() 
+        && isValidId(roomId)
+        && isValidRoom(incoming())
+        && incoming().hostId == request.auth.uid;
+
+      allow update: if isSignedIn() && (
+        // Action: Join
+        (existing().status == 'waiting' && incoming().status == 'setup' 
+         && incoming().guestId == request.auth.uid) 
+        
+        || 
+        
+        // Action: Setup (only host can setup)
+        (existing().status == 'setup' && incoming().status == 'active'
+         && request.auth.uid == existing().hostId)
+        
+        ||
+
+        // Action: Game Actions (spinning, responding, etc.)
+        (existing().status in ['active', 'finished'] && (request.auth.uid == existing().hostId || request.auth.uid == existing().guestId))
+      );
+
+      allow delete: if false;
+    }
+  }
+}
